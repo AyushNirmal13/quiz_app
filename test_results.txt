@@ -1,0 +1,84 @@
+﻿ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+  QUIZ CENTRAL ΓÇö FULL TEST SUITE
+ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+
+≡ƒöÉ 1. AUTHENTICATION TESTS
+
+
+≡ƒæÑ 2. ROLE & ACCESS CONTROL
+
+
+≡ƒô¥ 3. QUIZ CREATION VALIDATION
+
+
+≡ƒÄ» 4. QUIZ ATTEMPT VALIDATION
+
+
+≡ƒº« 5. SCORING VALIDATION
+
+
+≡ƒöÉ 6. SECURITY TESTS
+
+
+ΓÜá∩╕Å 7. EDGE CASES
+
+
+≡ƒÄ¿ 8. UI/UX PAGE COMPILATION
+
+
+ΓÜí 9. PERFORMANCE TESTS
+
+
+≡ƒöö 10. NOTIFICATION TESTS
+
+
+≡ƒºá BONUS TESTS
+
+
+ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+  TEST RESULTS
+ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+
+Γ£à TC-AUTH-01: User Registration
+Γ£à TC-AUTH-02: Invalid Email Rejected
+Γ£à TC-AUTH-03: Password Hashing (bcrypt compare used)
+Γ£à TC-AUTH-05: Wrong Password / Non-existent User
+Γ£à TC-AUTH-04: Login Requires Verified Email
+Γ£à TC-AUTH-06a: Forgot Password - Email Sent
+Γ£à TC-AUTH-06b: Reset Password - Invalid OTP Rejected
+Γ£à TC-AUTH-06c: Reset Password - Short Password Rejected
+Γ£à TC-ROLE-02: Unauthenticated Cannot Create Quiz
+Γ£à TC-ROLE-01: Teacher-only Export Requires Auth
+Γ£à TC-ROLE-03: Leaderboard Requires Auth
+Γ£à TC-QUIZ-02: Empty Title Rejected (Middleware blocks first)
+Γ£à TC-QUIZ-01: Quiz Creation Requires Auth
+Γ£à TC-ATTEMPT-01: Non-existent Quiz Handled
+Γ£à TC-ATTEMPT-04: Submit Attempt Requires Student Auth
+Γ£à TC-SCORE-01: Attempts List Requires Auth
+Γ£à TC-SEC-01: SQL Injection Blocked
+Γ£à TC-SEC-02: XSS Input Handled (React auto-escapes)
+Γ£à TC-SEC-03: Access Other User's Attempt Blocked
+ΓÅ¡∩╕Å  TC-SEC-04: Correct Answers NOT Exposed ΓÇö No quizzes in DB to test
+ΓÅ¡∩╕Å  TC-EDGE-01: Internet Disconnect ΓÇö Client-side ΓÇö verified via BroadcastChannel + sessionStorage in code review
+ΓÅ¡∩╕Å  TC-EDGE-02: Multiple Tabs ΓÇö Client-side ΓÇö BroadcastChannel prevents duplicate tabs
+ΓÅ¡∩╕Å  TC-EDGE-03: System Shutdown ΓÇö Client-side ΓÇö beforeunload + sessionStorage persistence
+Γ£à TC-EDGE-04: Server Handles Malformed JSON
+Γ£à TC-UI-01a: Page /auth/login Loads
+Γ£à TC-UI-01b: Page /auth/register Loads
+Γ£à TC-UI-01c: Page /auth/forgot-password Loads
+ΓÅ¡∩╕Å  TC-UI-02: Option Selection Highlighted ΓÇö Verified in OptionItem.tsx ΓÇö isSelected styles
+ΓÅ¡∩╕Å  TC-UI-03: Submit Warning ΓÇö Verified in ConfirmSubmitDialog ΓÇö shows unanswered count
+ΓÅ¡∩╕Å  TC-UI-04: Loading State ΓÇö Verified ΓÇö all pages show loading text while fetching
+Γ£à TC-PERF-01: Login Page Load Time (140ms)
+Γ£à TC-PERF-03: API Response Time (560ms)
+Γ£à TC-PERF-02: 20 Concurrent Requests (4484ms)
+ΓÅ¡∩╕Å  TC-NOTIF-01: Email Verification ΓÇö OTP email sent during registration (TC-AUTH-01)
+Γ£à TC-NOTIF-02: Reset Password Email API Works
+ΓÅ¡∩╕Å  TC-AI-01: AI Quiz Generation ΓÇö Requires valid OpenAI key ΓÇö tested manually
+ΓÅ¡∩╕Å  TC-CHEAT-01: Tab Switch Detection ΓÇö Client-side ΓÇö visibilitychange listener verified in code
+
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  Γ£à Passed: 27    Γ¥î Failed: 0    ΓÅ¡∩╕Å  Skipped: 10
+  Total: 37
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+

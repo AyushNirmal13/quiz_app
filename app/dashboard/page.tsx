@@ -1,0 +1,303 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+
+import { AppShell } from "@/components/layout/AppShell";
+import { FilterBar } from "@/components/filters/FilterBar";
+import { fetchCurrentUser } from "@/lib/auth-client";
+import type { AuthUser } from "@/types/auth";
+import type { AttemptRecord, FilterGroup, FilterState, QuizSummary } from "@/types/quiz";
+
+
+
+export default function DashboardPage() {
+  const router = useRouter();
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
+  
+  // All quizzes from API
+  const [quizzes, setQuizzes] = useState<QuizSummary[]>([]);
+
+  
+  const [attempts, setAttempts] = useState<AttemptRecord[]>([]);
+  const [filters, setFilters] = useState<FilterState>({ category: "", difficulty: "", search: "" });
+  const [isLoading, setIsLoading] = useState(true);
+
+  // States for toggling/deleting created quizzes
+  const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const load = async () => {
+      const user = await fetchCurrentUser();
+      if (!user) { router.replace("/auth/login"); return; }
+      setCurrentUser(user);
+
+      const [qRes, aRes] = await Promise.all([
+        fetch("/api/quizzes", { cache: "no-store" }),
+        fetch("/api/attempts", { cache: "no-store" }),
+      ]);
+      
+      const [qData, aData] = await Promise.all([
+        qRes.json() as Promise<{ quizzes?: QuizSummary[] }>,
+        aRes.json() as Promise<{ attempts?: AttemptRecord[] }>,
+      ]);
+
+      const allQuizzes = qData.quizzes ?? [];
+      setQuizzes(allQuizzes);
+      setAttempts(aData.attempts ?? []);
+      
+      // API returns both created and live quizzes
+      setIsLoading(false);
+    };
+    void load();
+  }, [router]);
+
+  const handleFilterChange = (key: keyof FilterState, value: string) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  };
+
+  // Actions for created quizzes (If we add a "My Quizzes" section later)
+  const toggleLive = async (quiz: QuizSummary) => {
+    setTogglingId(quiz.slug);
+    try {
+      const res = await fetch(`/api/quizzes/${quiz.slug}/toggle-live`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isLive: !quiz.isLive }),
+      });
+      const data = await res.json() as { success: boolean; isLive?: boolean };
+      if (data.success) {
+        setQuizzes((prev) => prev.map((q) => q.slug === quiz.slug ? { ...q, isLive: data.isLive ?? !quiz.isLive } : q));
+      }
+    } catch { /* ignore */ }
+    setTogglingId(null);
+  };
+
+  const deleteQuiz = async (quiz: QuizSummary) => {
+    if (!confirm(`Delete "${quiz.title}"? This cannot be undone.`)) return;
+    setDeletingId(quiz.slug);
+    try {
+      const res = await fetch(`/api/quizzes/${quiz.slug}`, { method: "DELETE" });
+      const data = await res.json() as { success: boolean };
+      if (data.success) setQuizzes((prev) => prev.filter((q) => q.slug !== quiz.slug));
+    } catch { /* ignore */ }
+    setDeletingId(null);
+  };
+
+  // Filter options from real quiz data
+  const categories = [...new Set(quizzes.map((q) => q.tag).filter(Boolean))];
+  const difficulties = [...new Set(quizzes.map((q) => q.difficulty).filter(Boolean))];
+
+  const filterGroups: FilterGroup[] = [
+    { name: "category", label: "Category", options: categories },
+    { name: "difficulty", label: "Difficulty", options: difficulties },
+  ];
+
+  // Filtered quiz list
+  const s = filters.search.toLowerCase();
+  const filteredQuizzes = quizzes.filter((q) => {
+    if (filters.category && q.tag !== filters.category) return false;
+    if (filters.difficulty && q.difficulty !== filters.difficulty) return false;
+    if (s && !q.title.toLowerCase().includes(s) && !q.id.toLowerCase().includes(s)) return false;
+    return true;
+  });
+
+  // Live quizzes for sidebar
+  const liveQuizzes = quizzes.filter((q) => q.isLive).slice(0, 5);
+  const attemptedQuizIds = new Set(attempts.map((a) => a.quizId));
+
+  if (isLoading) {
+    return (
+      <AppShell activeNav="dashboard">
+        <div className="page-shell"><p className="section-copy">Loading your dashboard...</p></div>
+      </AppShell>
+    );
+  }
+
+  return (
+    <AppShell activeNav="dashboard">
+      <div className="page-shell">
+        {/* Header */}
+        <section className="page-intro">
+          <div className="page-intro__top">
+            <div className="page-intro__copy">
+              <p className="eyebrow">Dashboard</p>
+              <h1 className="page-title">{currentUser?.name ?? "Welcome"}</h1>
+              <p className="page-lede">
+                {currentUser?.email}
+              </p>
+            </div>
+            
+            <Link href="/create" className="btn-primary" style={{ height: "fit-content" }}>
+              + Create Quiz
+            </Link>
+          </div>
+
+          <div style={{
+            display: "flex", gap: "0.5rem", alignItems: "center", marginTop: "1rem",
+            padding: "0.75rem 1rem", border: "2px solid var(--color-ink)", background: "var(--color-panel)",
+            flexWrap: "wrap"
+          }}>
+            <span style={{ fontFamily: "var(--font-label), monospace", fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.1em", whiteSpace: "nowrap" }}>
+              Join by Code →
+            </span>
+            <input
+              id="join-code-input"
+              type="text"
+              placeholder="Enter quiz code or paste link"
+              style={{
+                flex: 1, minHeight: "40px", padding: "0.5rem 0.75rem",
+                border: "1px solid var(--color-ink)", background: "var(--color-paper)",
+                fontFamily: "var(--font-label), monospace", fontSize: "0.88rem",
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  const input = (e.target as HTMLInputElement).value.trim();
+                  if (input) {
+                    const code = input.includes("/") ? input.split("/").pop() : input;
+                    if (code) router.push(`/quiz/${code}`);
+                  }
+                }
+              }}
+            />
+            <button
+              type="button"
+              className="btn-primary"
+              style={{ minHeight: "40px", padding: "0.5rem 1rem" }}
+              onClick={() => {
+                const input = (document.getElementById("join-code-input") as HTMLInputElement)?.value.trim();
+                if (input) {
+                  const code = input.includes("/") ? input.split("/").pop() : input;
+                  if (code) router.push(`/quiz/${code}`);
+                }
+              }}
+            >
+              Join
+            </button>
+          </div>
+        </section>
+
+        {/* Explore / Filter section */}
+        <FilterBar
+          filters={filterGroups}
+          values={filters}
+          searchPlaceholder="Search by quiz name or code..."
+          onChange={handleFilterChange}
+        />
+
+        <div className="dashboard-layout">
+          {/* Main Content Area */}
+          <div>
+            <div className="section-header">
+              <div>
+                <p className="eyebrow">Explore</p>
+                <h2 className="section-title">All Quizzes</h2>
+              </div>
+              <span className="section-count">{filteredQuizzes.length} found</span>
+            </div>
+
+            {filteredQuizzes.length === 0 ? (
+              <div className="content-card">
+                <p className="section-copy">
+                  {quizzes.length === 0
+                    ? "No quizzes are available right now. Why not create one?"
+                    : "No quizzes match your current filters. Try clearing them."}
+                </p>
+                {quizzes.length > 0 && (
+                  <button type="button" className="btn-secondary" onClick={() => setFilters({ category: "", difficulty: "", search: "" })}>
+                    Clear all filters
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="quiz-grid">
+                {filteredQuizzes.map((quiz) => {
+                  const alreadyAttempted = attemptedQuizIds.has(quiz.id);
+                  return (
+                    <article key={quiz.slug} className="quiz-card">
+                      <div className="quiz-card__header">
+                        <span className="quiz-card__badge">{quiz.tag}</span>
+                        <span className="quiz-card__id">{quiz.id}</span>
+                      </div>
+
+                      <div className="quiz-card__visual">
+                        <span className="quiz-card__visual-kicker">{quiz.difficulty}</span>
+                        <p className="quiz-card__visual-focus">{quiz.focus || quiz.title.slice(0, 20)}</p>
+                        <span className="quiz-card__visual-index">{quiz.questionCount}Q</span>
+                      </div>
+
+                      <div className="quiz-card__body">
+                        <h3 className="quiz-card__title">{quiz.title}</h3>
+                        {quiz.description && <p className="quiz-card__description">{quiz.description}</p>}
+                      </div>
+
+                      <div className="quiz-card__stats">
+                        <span className="quiz-card__stat">{quiz.duration}</span>
+                        <span className="quiz-card__stat">{quiz.difficulty}</span>
+                        {quiz.surveillanceSettings?.cameraRequired && <span className="quiz-card__stat">📷 Camera</span>}
+                        {alreadyAttempted && <span className="quiz-card__stat" style={{ background: "var(--color-olive)", color: "var(--color-paper)", borderColor: "var(--color-olive)" }}>Attempted</span>}
+                      </div>
+
+                      <div className="quiz-card__footer">
+                        <span className={`status-chip ${quiz.isLive ? "status-chip--active" : ""}`}>
+                          {quiz.isLive ? "Live" : "Upcoming"}
+                        </span>
+                        
+                        <div style={{ display: "flex", gap: "0.5rem" }}>
+                          <Link href={`/quiz/${quiz.slug}`} className="btn-primary">
+                            {alreadyAttempted ? "Retake" : "Start"}
+                          </Link>
+                          
+                          {/* If they are an author/we want to show edit */}
+                          <Link href={`/edit/${quiz.slug}`} className="btn-secondary" style={{ padding: "0.5rem", minHeight: "0" }}>
+                            Edit
+                          </Link>
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <aside>
+            <div style={{ display: "grid", gap: "1rem", border: "2px solid var(--color-ink)", padding: "1.25rem", background: "var(--color-panel)", position: "sticky", top: "5.5rem" }}>
+              <div className="sidebar-panel__header">
+                <p className="sidebar-panel__label">Live Right Now</p>
+                <h2 className="sidebar-panel__title">Active Quizzes</h2>
+                <p className="sidebar-panel__id">These are open and accepting responses.</p>
+              </div>
+
+              {liveQuizzes.length === 0 ? (
+                <p className="section-copy">No live quizzes right now. Check back soon.</p>
+              ) : (
+                <ul className="link-list">
+                  {liveQuizzes.map((quiz) => (
+                    <li key={quiz.slug} className="link-list__item">
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem" }}>
+                        <div>
+                          <strong>{quiz.title}</strong>
+                          <span style={{ display: "block", color: "var(--color-muted)", fontSize: "0.85rem" }}>
+                            {quiz.duration} · {quiz.questionCount} questions
+                          </span>
+                        </div>
+                        <span className="status-chip status-chip--active" style={{ whiteSpace: "nowrap", color: "#ffffff" }}>Live</span>
+                      </div>
+                      <Link href={`/quiz/${quiz.slug}`} className="btn-primary" style={{ display: "block", textAlign: "center", margin: "0.5rem 0 0" }}>
+                        Start Now
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </aside>
+        </div>
+      </div>
+    </AppShell>
+  );
+}
