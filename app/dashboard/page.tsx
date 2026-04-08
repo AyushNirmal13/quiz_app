@@ -86,9 +86,12 @@ export default function DashboardPage() {
     setDeletingId(null);
   };
 
+  // All quizzes returned by API are the user's own quizzes now
+  const myQuizzes = quizzes;
+
   // Filter options from real quiz data
-  const categories = [...new Set(quizzes.map((q) => q.tag).filter(Boolean))];
-  const difficulties = [...new Set(quizzes.map((q) => q.difficulty).filter(Boolean))];
+  const categories = [...new Set(myQuizzes.map((q) => q.tag).filter(Boolean))];
+  const difficulties = [...new Set(myQuizzes.map((q) => q.difficulty).filter(Boolean))];
 
   const filterGroups: FilterGroup[] = [
     { name: "category", label: "Category", options: categories },
@@ -97,16 +100,18 @@ export default function DashboardPage() {
 
   // Filtered quiz list
   const s = filters.search.toLowerCase();
-  const filteredQuizzes = quizzes.filter((q) => {
+  const filteredQuizzes = myQuizzes.filter((q) => {
     if (filters.category && q.tag !== filters.category) return false;
     if (filters.difficulty && q.difficulty !== filters.difficulty) return false;
     if (s && !q.title.toLowerCase().includes(s) && !q.id.toLowerCase().includes(s)) return false;
     return true;
   });
 
-  // Live quizzes for sidebar
-  const liveQuizzes = quizzes.filter((q) => q.isLive).slice(0, 5);
   const attemptedQuizIds = new Set(attempts.map((a) => a.quizId));
+
+  // Quick stats
+  const liveCount = myQuizzes.filter((q) => q.isLive).length;
+  const draftCount = myQuizzes.filter((q) => !q.isLive).length;
 
   if (isLoading) {
     return (
@@ -179,21 +184,21 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* Explore / Filter section */}
+        {/* Filter section */}
         <FilterBar
           filters={filterGroups}
           values={filters}
-          searchPlaceholder="Search by quiz name or code..."
+          searchPlaceholder="Search your quizzes by name or code..."
           onChange={handleFilterChange}
         />
 
         <div className="dashboard-layout">
-          {/* Main Content Area */}
+          {/* Main Content Area — My Quizzes only */}
           <div>
             <div className="section-header">
               <div>
-                <p className="eyebrow">Explore</p>
-                <h2 className="section-title">All Quizzes</h2>
+                <p className="eyebrow">Your Quizzes</p>
+                <h2 className="section-title">My Quizzes</h2>
               </div>
               <span className="section-count">{filteredQuizzes.length} found</span>
             </div>
@@ -201,11 +206,11 @@ export default function DashboardPage() {
             {filteredQuizzes.length === 0 ? (
               <div className="content-card">
                 <p className="section-copy">
-                  {quizzes.length === 0
-                    ? "No quizzes are available right now. Why not create one?"
+                  {myQuizzes.length === 0
+                    ? "You haven't created any quizzes yet. Create one or join a quiz using an access code above!"
                     : "No quizzes match your current filters. Try clearing them."}
                 </p>
-                {quizzes.length > 0 && (
+                {myQuizzes.length > 0 && (
                   <button type="button" className="btn-secondary" onClick={() => setFilters({ category: "", difficulty: "", search: "" })}>
                     Clear all filters
                   </button>
@@ -242,18 +247,36 @@ export default function DashboardPage() {
 
                       <div className="quiz-card__footer">
                         <span className={`status-chip ${quiz.isLive ? "status-chip--active" : ""}`}>
-                          {quiz.isLive ? "Live" : "Upcoming"}
+                          {quiz.isLive ? "Live" : "Draft"}
                         </span>
                         
                         <div style={{ display: "flex", gap: "0.5rem" }}>
                           <Link href={`/quiz/${quiz.slug}`} className="btn-primary">
-                            {alreadyAttempted ? "Retake" : "Start"}
+                            {alreadyAttempted ? "Retake" : "Preview"}
                           </Link>
                           
-                          {/* If they are an author/we want to show edit */}
+                          {/* Owner actions — only shown for user's own quizzes */}
                           <Link href={`/edit/${quiz.slug}`} className="btn-secondary" style={{ padding: "0.5rem", minHeight: "0" }}>
                             Edit
                           </Link>
+                          <button
+                            type="button"
+                            className="btn-secondary"
+                            style={{ padding: "0.5rem", minHeight: "0", fontSize: "0.78rem" }}
+                            disabled={togglingId === quiz.slug}
+                            onClick={() => void toggleLive(quiz)}
+                          >
+                            {togglingId === quiz.slug ? "..." : quiz.isLive ? "Unpublish" : "Publish"}
+                          </button>
+                          <button
+                            type="button"
+                            className="btn-secondary"
+                            style={{ padding: "0.5rem", minHeight: "0", fontSize: "0.78rem", color: "var(--color-accent)" }}
+                            disabled={deletingId === quiz.slug}
+                            onClick={() => void deleteQuiz(quiz)}
+                          >
+                            {deletingId === quiz.slug ? "..." : "Delete"}
+                          </button>
                         </div>
                       </div>
                     </article>
@@ -263,37 +286,39 @@ export default function DashboardPage() {
             )}
           </div>
 
-          {/* Sidebar */}
+          {/* Sidebar — Quick Stats */}
           <aside>
             <div style={{ display: "grid", gap: "1rem", border: "2px solid var(--color-ink)", padding: "1.25rem", background: "var(--color-panel)", position: "sticky", top: "5.5rem" }}>
               <div className="sidebar-panel__header">
-                <p className="sidebar-panel__label">Live Right Now</p>
-                <h2 className="sidebar-panel__title">Active Quizzes</h2>
-                <p className="sidebar-panel__id">These are open and accepting responses.</p>
+                <p className="sidebar-panel__label">Overview</p>
+                <h2 className="sidebar-panel__title">Quick Stats</h2>
               </div>
 
-              {liveQuizzes.length === 0 ? (
-                <p className="section-copy">No live quizzes right now. Check back soon.</p>
-              ) : (
-                <ul className="link-list">
-                  {liveQuizzes.map((quiz) => (
-                    <li key={quiz.slug} className="link-list__item">
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem" }}>
-                        <div>
-                          <strong>{quiz.title}</strong>
-                          <span style={{ display: "block", color: "var(--color-muted)", fontSize: "0.85rem" }}>
-                            {quiz.duration} · {quiz.questionCount} questions
-                          </span>
-                        </div>
-                        <span className="status-chip status-chip--active" style={{ whiteSpace: "nowrap", color: "#ffffff" }}>Live</span>
-                      </div>
-                      <Link href={`/quiz/${quiz.slug}`} className="btn-primary" style={{ display: "block", textAlign: "center", margin: "0.5rem 0 0" }}>
-                        Start Now
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <div style={{ display: "grid", gap: "0.75rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "0.5rem 0", borderBottom: "1px solid var(--color-panel-strong)" }}>
+                  <span style={{ fontSize: "0.85rem", color: "var(--color-muted)" }}>Total Quizzes</span>
+                  <strong>{myQuizzes.length}</strong>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "0.5rem 0", borderBottom: "1px solid var(--color-panel-strong)" }}>
+                  <span style={{ fontSize: "0.85rem", color: "var(--color-muted)" }}>Live</span>
+                  <strong style={{ color: "var(--color-olive)" }}>{liveCount}</strong>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "0.5rem 0", borderBottom: "1px solid var(--color-panel-strong)" }}>
+                  <span style={{ fontSize: "0.85rem", color: "var(--color-muted)" }}>Drafts</span>
+                  <strong>{draftCount}</strong>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "0.5rem 0" }}>
+                  <span style={{ fontSize: "0.85rem", color: "var(--color-muted)" }}>Attempts Received</span>
+                  <strong>{attempts.length}</strong>
+                </div>
+              </div>
+
+              <div style={{ borderTop: "1px solid var(--color-ink)", paddingTop: "1rem", marginTop: "0.5rem" }}>
+                <p className="sidebar-panel__label">Join a Quiz</p>
+                <p style={{ fontSize: "0.85rem", color: "var(--color-muted)", marginTop: "0.25rem" }}>
+                  Use the &ldquo;Join by Code&rdquo; bar above to enter a quiz access code shared by someone else.
+                </p>
+              </div>
             </div>
           </aside>
         </div>

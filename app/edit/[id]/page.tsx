@@ -27,6 +27,7 @@ interface QuizDetailFull {
   duration: string;
   isLive: boolean;
   status: string;
+  createdBy: string;
   startTime: string;
   endTime: string;
   shuffleQuestions: boolean;
@@ -94,6 +95,14 @@ export default function EditQuizPage({ params }: { params: Promise<{ id: string 
       }
 
       const q = data.quiz;
+
+      // Ownership check — only the creator can edit
+      if (q.createdBy && q.createdBy !== user.id) {
+        setLoadError("Access denied. Only the quiz creator can edit this quiz.");
+        setIsLoading(false);
+        return;
+      }
+
       setQuiz(q);
       setTitle(q.title);
       setDescription(q.description ?? "");

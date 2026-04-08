@@ -38,11 +38,9 @@ export async function GET(request: NextRequest) {
 
     await dbConnect();
 
+    // Only return quizzes the user created — other quizzes are accessed via access code
     const quizzes = await Quiz.find({
-      $or: [
-        { isLive: true },
-        { createdBy: payload.userId }
-      ]
+      createdBy: payload.userId,
     }).sort({ createdAt: -1 });
 
     return NextResponse.json({ success: true, quizzes: quizzes.map(serializeQuizSummary) });

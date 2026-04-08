@@ -163,6 +163,50 @@ textarea {
   border-color: var(--color-accent);
 }
 
+/* ── Hamburger button ─────────────────────────────────────── */
+.hamburger {
+  display: none;          /* hidden on desktop */
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 2px solid var(--color-ink);
+  background: var(--color-panel);
+  cursor: pointer;
+  z-index: 52;
+  flex-shrink: 0;
+}
+
+.hamburger__line {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--color-ink);
+  transition: transform 0.3s ease, opacity 0.2s ease;
+  transform-origin: center;
+}
+
+.hamburger--active .hamburger__line:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.hamburger--active .hamburger__line:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger--active .hamburger__line:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+/* ── Nav overlay backdrop ─────────────────────────────────── */
+.nav-overlay {
+  display: none;
+}
+
+
 .page-intro {
   margin-bottom: 1.5rem;
   padding: 1rem 0 1.5rem;
@@ -825,19 +869,88 @@ textarea {
 }
 
 @media (max-width: 920px) {
-  .topbar__inner,
+  .topbar__inner {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: nowrap;
+    position: relative;
+  }
+
   .page-intro__top,
   .section-header {
     flex-direction: column;
     align-items: flex-start;
   }
 
+  /* Show hamburger on mobile */
+  .hamburger {
+    display: flex;
+  }
+
+  /* Hide nav by default on mobile, show as dropdown panel */
   .topbar__nav {
-    width: 100%;
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 51;
+    flex-direction: column;
+    gap: 0;
+    background: var(--color-paper);
+    border-top: 2px solid var(--color-ink);
+    border-bottom: 2px solid var(--color-ink);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    animation: navSlideDown 0.25s ease-out;
+  }
+
+  .topbar__nav--open {
+    display: flex;
+  }
+
+  @keyframes navSlideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   .topbar__link {
-    flex: 1 1 140px;
+    flex: 1 1 auto;
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid var(--color-panel-strong);
+    padding: 1rem 1.25rem;
+    font-size: 0.82rem;
+    justify-content: flex-start;
+  }
+
+  .topbar__link:last-child {
+    border-bottom: none;
+  }
+
+  .topbar__link--active {
+    background: var(--color-ink);
+    color: var(--color-paper);
+  }
+
+  /* Overlay backdrop */
+  .nav-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: rgba(0, 0, 0, 0.25);
+    animation: overlayFadeIn 0.2s ease-out;
+  }
+
+  @keyframes overlayFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 
   .filter-bar,
@@ -878,10 +991,6 @@ textarea {
 
   .kpi-strip {
     grid-template-columns: 1fr;
-  }
-
-  .topbar__link {
-    flex: 1 1 100%;
   }
 
   .quiz-card__footer {

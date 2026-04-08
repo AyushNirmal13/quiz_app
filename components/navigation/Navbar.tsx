@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { usePathname } from "next/navigation";
 import { fetchCurrentUser } from "@/lib/auth-client";
 
 export type NavKey = "dashboard" | "create" | "analytics" | "account" | "records" | "explore" | null;
@@ -19,6 +20,8 @@ interface NavbarProps {
 
 export function Navbar({ activeKey = null }: NavbarProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const pathname = usePathname();
   const homeHref = "/dashboard";
 
   useEffect(() => {
@@ -33,6 +36,24 @@ export function Navbar({ activeKey = null }: NavbarProps) {
     };
   }, []);
 
+  // Close menu on route change
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
+
+  // Close menu on Escape key
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, []);
+
+  const toggleMenu = useCallback(() => {
+    setMenuOpen((prev) => !prev);
+  }, []);
+
   return (
     <header className="topbar">
       <div className="topbar__inner">
@@ -45,17 +66,46 @@ export function Navbar({ activeKey = null }: NavbarProps) {
         </Link>
 
         {isAuthenticated && (
-          <nav className="topbar__nav" aria-label="Primary navigation">
-            {NAV_ITEMS.map((item) => (
-              <Link
-                key={item.key}
-                href={item.href}
-                className={item.key === activeKey ? "topbar__link topbar__link--active" : "topbar__link"}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
+          <>
+            {/* Hamburger button — visible only on mobile */}
+            <button
+              type="button"
+              className={`hamburger${menuOpen ? " hamburger--active" : ""}`}
+              onClick={toggleMenu}
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={menuOpen}
+            >
+              <span className="hamburger__line" />
+              <span className="hamburger__line" />
+              <span className="hamburger__line" />
+            </button>
+
+            {/* Overlay backdrop — visible only when menu is open on mobile */}
+            {menuOpen && (
+              <div
+                className="nav-overlay"
+                onClick={() => setMenuOpen(false)}
+                aria-hidden="true"
+              />
+            )}
+
+            {/* Navigation links */}
+            <nav
+              className={`topbar__nav${menuOpen ? " topbar__nav--open" : ""}`}
+              aria-label="Primary navigation"
+            >
+              {NAV_ITEMS.map((item) => (
+                <Link
+                  key={item.key}
+                  href={item.href}
+                  className={item.key === activeKey ? "topbar__link topbar__link--active" : "topbar__link"}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+          </>
         )}
       </div>
     </header>
