@@ -177,7 +177,7 @@ export default function DashboardPage() {
             {myQuizzes.length === 0 ? (
               <div className="content-card">
                 <p className="section-copy">
-                  You haven't created any quizzes yet. Create one or join a quiz using an access code above!
+                  You haven&apos;t created any quizzes yet. Create one or join a quiz using an access code above!
                 </p>
               </div>
             ) : (

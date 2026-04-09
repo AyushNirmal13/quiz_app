@@ -111,7 +111,7 @@ function TeacherAnalyticsPageContent() {
       setIsLoading(false);
     };
     void load();
-  }, [router]);
+  }, [router, searchParams]);
 
   const exportCSV = async (quizId?: string) => {
     setIsExporting(true);
