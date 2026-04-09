@@ -59,9 +59,9 @@ export function StudyMaterialUploader({ onQuestionsGenerated }: StudyMaterialUpl
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ materialId, questionCount, difficulty, topicFocus: topicFocus.trim() || undefined }),
       });
-      const data = await res.json() as { success: boolean; message?: string; questions?: DraftQuestion[] };
+      const data = await res.json() as { success?: boolean; status?: string; message?: string; questions?: DraftQuestion[] };
 
-      if (!res.ok || !data.success || !data.questions) {
+      if (!res.ok || (data.status !== "success" && !data.success) || !data.questions) {
         setErrorMsg(data.message ?? "Generation failed.");
         setState("error");
         return;

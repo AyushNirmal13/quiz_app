@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 import { AppShell } from "@/components/layout/AppShell";
@@ -62,11 +62,12 @@ function getMostWrongQuestions(attempts: AttemptRecord[]): WrongQuestionStat[] {
     .slice(0, 10);
 }
 
-export default function TeacherAnalyticsPage() {
+function TeacherAnalyticsPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [quizStats, setQuizStats] = useState<QuizStats[]>([]);
   const [allAttempts, setAllAttempts] = useState<AttemptRecord[]>([]);
-  const [selectedQuizId, setSelectedQuizId] = useState<string>("");
+  const [selectedQuizId, setSelectedQuizId] = useState<string>(searchParams.get("quizId") ?? "");
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [isExporting, setIsExporting] = useState(false);
@@ -101,7 +102,12 @@ export default function TeacherAnalyticsPage() {
       });
 
       setQuizStats(stats);
-      if (stats.length > 0) setSelectedQuizId(stats[0].quiz.id);
+      const targetQuizId = searchParams.get("quizId");
+      if (targetQuizId && stats.find(s => s.quiz.id === targetQuizId)) {
+        setSelectedQuizId(targetQuizId);
+      } else if (stats.length > 0) {
+        setSelectedQuizId(stats[0].quiz.id);
+      }
       setIsLoading(false);
     };
     void load();
@@ -189,7 +195,7 @@ export default function TeacherAnalyticsPage() {
             <Link href="/create" className="btn-primary">Create a Quiz</Link>
           </div>
         ) : (
-          <div className="dashboard-layout">
+          <div className="analytics-layout">
             {/* Quiz list (sidebar) */}
             <aside>
               <div style={{ border: "2px solid var(--color-ink)", background: "var(--color-panel)", position: "sticky", top: "5.5rem" }}>
@@ -388,5 +394,13 @@ export default function TeacherAnalyticsPage() {
         )}
       </div>
     </AppShell>
+  );
+}
+
+export default function TeacherAnalyticsPage() {
+  return (
+    <Suspense fallback={<AppShell activeNav="analytics"><div className="page-shell"></div></AppShell>}>
+      <TeacherAnalyticsPageContent />
+    </Suspense>
   );
 }

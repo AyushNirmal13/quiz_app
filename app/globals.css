@@ -387,6 +387,13 @@ textarea {
   align-items: start;
 }
 
+.analytics-layout {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
 .quiz-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -635,6 +642,18 @@ textarea {
   text-transform: uppercase;
 }
 
+.record-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.record-table th,
+.record-table td {
+  padding: 0.85rem 0.5rem;
+  text-align: left;
+  vertical-align: top;
+}
+
 .detail-list__row dd {
   margin: 0;
   max-width: 18ch;
@@ -851,7 +870,8 @@ textarea {
 @media (max-width: 1180px) {
   .dashboard-layout,
   .attempt-layout,
-  .teacher-grid {
+  .teacher-grid,
+  .analytics-layout {
     grid-template-columns: 1fr;
   }
 

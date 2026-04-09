@@ -31,7 +31,9 @@ export default function StudentResultsPage() {
       }
       const res = await fetch("/api/attempts", { cache: "no-store" });
       const data = await res.json() as { attempts?: AttemptRecord[] };
-      setAttempts(data.attempts ?? []);
+      const allAttempts = data.attempts ?? [];
+      const myAttempts = allAttempts.filter(a => a.userId === user.id);
+      setAttempts(myAttempts);
       setIsLoading(false);
     };
     void load();

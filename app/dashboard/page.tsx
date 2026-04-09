@@ -5,10 +5,9 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 import { AppShell } from "@/components/layout/AppShell";
-import { FilterBar } from "@/components/filters/FilterBar";
 import { fetchCurrentUser } from "@/lib/auth-client";
 import type { AuthUser } from "@/types/auth";
-import type { AttemptRecord, FilterGroup, FilterState, QuizSummary } from "@/types/quiz";
+import type { AttemptRecord, QuizSummary } from "@/types/quiz";
 
 
 
@@ -21,7 +20,6 @@ export default function DashboardPage() {
 
   
   const [attempts, setAttempts] = useState<AttemptRecord[]>([]);
-  const [filters, setFilters] = useState<FilterState>({ category: "", difficulty: "", search: "" });
   const [isLoading, setIsLoading] = useState(true);
 
   // States for toggling/deleting created quizzes
@@ -54,9 +52,6 @@ export default function DashboardPage() {
     void load();
   }, [router]);
 
-  const handleFilterChange = (key: keyof FilterState, value: string) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
-  };
 
   // Actions for created quizzes (If we add a "My Quizzes" section later)
   const toggleLive = async (quiz: QuizSummary) => {
@@ -89,23 +84,6 @@ export default function DashboardPage() {
   // All quizzes returned by API are the user's own quizzes now
   const myQuizzes = quizzes;
 
-  // Filter options from real quiz data
-  const categories = [...new Set(myQuizzes.map((q) => q.tag).filter(Boolean))];
-  const difficulties = [...new Set(myQuizzes.map((q) => q.difficulty).filter(Boolean))];
-
-  const filterGroups: FilterGroup[] = [
-    { name: "category", label: "Category", options: categories },
-    { name: "difficulty", label: "Difficulty", options: difficulties },
-  ];
-
-  // Filtered quiz list
-  const s = filters.search.toLowerCase();
-  const filteredQuizzes = myQuizzes.filter((q) => {
-    if (filters.category && q.tag !== filters.category) return false;
-    if (filters.difficulty && q.difficulty !== filters.difficulty) return false;
-    if (s && !q.title.toLowerCase().includes(s) && !q.id.toLowerCase().includes(s)) return false;
-    return true;
-  });
 
   const attemptedQuizIds = new Set(attempts.map((a) => a.quizId));
 
@@ -184,13 +162,6 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* Filter section */}
-        <FilterBar
-          filters={filterGroups}
-          values={filters}
-          searchPlaceholder="Search your quizzes by name or code..."
-          onChange={handleFilterChange}
-        />
 
         <div className="dashboard-layout">
           {/* Main Content Area — My Quizzes only */}
@@ -200,25 +171,18 @@ export default function DashboardPage() {
                 <p className="eyebrow">Your Quizzes</p>
                 <h2 className="section-title">My Quizzes</h2>
               </div>
-              <span className="section-count">{filteredQuizzes.length} found</span>
+              <span className="section-count">{myQuizzes.length}</span>
             </div>
 
-            {filteredQuizzes.length === 0 ? (
+            {myQuizzes.length === 0 ? (
               <div className="content-card">
                 <p className="section-copy">
-                  {myQuizzes.length === 0
-                    ? "You haven't created any quizzes yet. Create one or join a quiz using an access code above!"
-                    : "No quizzes match your current filters. Try clearing them."}
+                  You haven't created any quizzes yet. Create one or join a quiz using an access code above!
                 </p>
-                {myQuizzes.length > 0 && (
-                  <button type="button" className="btn-secondary" onClick={() => setFilters({ category: "", difficulty: "", search: "" })}>
-                    Clear all filters
-                  </button>
-                )}
               </div>
             ) : (
               <div className="quiz-grid">
-                {filteredQuizzes.map((quiz) => {
+                {myQuizzes.map((quiz) => {
                   const alreadyAttempted = attemptedQuizIds.has(quiz.id);
                   return (
                     <article key={quiz.slug} className="quiz-card">
@@ -259,6 +223,11 @@ export default function DashboardPage() {
                           <Link href={`/edit/${quiz.slug}`} className="btn-secondary" style={{ padding: "0.5rem", minHeight: "0" }}>
                             Edit
                           </Link>
+                          {attempts.some(a => a.quizId === quiz.id) && (
+                            <Link href={`/analytics?quizId=${quiz.id}`} className="btn-secondary" style={{ padding: "0.5rem", minHeight: "0" }}>
+                              Results
+                            </Link>
+                          )}
                           <button
                             type="button"
                             className="btn-secondary"
@@ -266,7 +235,7 @@ export default function DashboardPage() {
                             disabled={togglingId === quiz.slug}
                             onClick={() => void toggleLive(quiz)}
                           >
-                            {togglingId === quiz.slug ? "..." : quiz.isLive ? "Unpublish" : "Publish"}
+                            {togglingId === quiz.slug ? "..." : quiz.isLive ? "Take Down" : "Go Live"}
                           </button>
                           <button
                             type="button"

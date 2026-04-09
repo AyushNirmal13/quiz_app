@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { key: "dashboard" as const, label: "Dashboard", href: "/dashboard" },
   { key: "create" as const, label: "Create Quiz", href: "/create" },
   { key: "records" as const, label: "Records", href: "/results" },
+  { key: "analytics" as const, label: "Analytics", href: "/analytics" },
   { key: "account" as const, label: "Account", href: "/account" },
 ];
 

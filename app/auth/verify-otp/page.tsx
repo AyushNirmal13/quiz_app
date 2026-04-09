@@ -96,7 +96,8 @@ function VerifyOtpPageContent() {
       }
 
       storeAuthUser(data.user);
-      router.replace("/dashboard");
+      // Use hard navigation to ensure layout/session caches are busted
+      window.location.href = "/dashboard";
     } catch {
       setErrorMessage("Unable to verify OTP right now.");
     } finally {

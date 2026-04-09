@@ -70,7 +70,8 @@ function RegisterPageContent() {
 
         if (data.user) {
           storeAuthUser(data.user);
-          router.replace("/dashboard");
+          // Use hard navigation to ensure layout/session caches are busted
+          window.location.href = "/dashboard";
         }
       } catch {
         setError("Google sign-in failed. Please try again.");
@@ -134,7 +135,7 @@ function RegisterPageContent() {
 
       if (isGoogleFlow && data.user) {
         storeAuthUser(data.user);
-        router.replace("/dashboard");
+        window.location.href = "/dashboard";
         return;
       }
 
