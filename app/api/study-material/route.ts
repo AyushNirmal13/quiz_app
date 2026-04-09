@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { verifyAuthToken } from "@/lib/auth";
 import { dbConnect } from "@/lib/dbConnect";
+import { uploadToS3 } from "@/lib/s3";
 import StudyMaterial from "@/models/StudyMaterial";
 
 // Force Node.js runtime — pdf-parse uses fs and Buffer
@@ -108,10 +109,26 @@ export async function POST(request: NextRequest) {
 
     await dbConnect();
 
+    let s3Key = undefined;
+    let fileUrl = undefined;
+
+    try {
+      if (process.env.AWS_S3_BUCKET_NAME) {
+        const mimeType = file.type || "application/octet-stream";
+        const s3Data = await uploadToS3(buffer, file.name, mimeType);
+        s3Key = s3Data.s3Key;
+        fileUrl = s3Data.fileUrl;
+      }
+    } catch (s3Error) {
+      console.error("S3 Upload Failed. Falling back to local/text DB storage.", s3Error);
+    }
+
     const material = await StudyMaterial.create({
       uploadedBy: payload.userId,
       fileName: file.name,
       contentText: extractedText.slice(0, 50000),
+      fileUrl,
+      s3Key
     });
 
     return NextResponse.json({

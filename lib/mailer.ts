@@ -1,25 +1,22 @@
-import nodemailer from "nodemailer";
+import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
 
-function createTransporter() {
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    throw new Error("Missing EMAIL credentials");
-  }
-  return nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
-}
+const sesClient = new SESClient({
+  region: process.env.AWS_REGION as string,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID as string,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY as string,
+  },
+});
 
 export async function sendOTP(email: string, otp: string) {
-  const transporter = createTransporter();
-  await transporter.sendMail({
-    from: `"Quiz Central" <${process.env.EMAIL_USER}>`,
-    to: email,
-    subject: "Verify your email — Quiz Central",
-    html: `
+  const params = {
+    Source: `"Quiz Central" <${process.env.SES_FROM_EMAIL}>`,
+    Destination: { ToAddresses: [email] },
+    Message: {
+      Subject: { Data: "Verify your email — Quiz Central" },
+      Body: {
+        Html: {
+          Data: `
       <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:2rem;border:1px solid #e5e5e5">
         <h2 style="margin:0 0 1rem">Email Verification</h2>
         <p>Your OTP code is:</p>
@@ -27,18 +24,24 @@ export async function sendOTP(email: string, otp: string) {
         <p style="color:#666;font-size:0.85rem">This code expires in 10 minutes. Do not share it with anyone.</p>
         <p style="color:#999;font-size:0.75rem;margin-top:2rem">— Quiz Central</p>
       </div>
-    `,
-  });
-  console.log("OTP sent to:", email);
+          `,
+        },
+      },
+    },
+  };
+  await sesClient.send(new SendEmailCommand(params));
+  console.log("OTP sent via SES to:", email);
 }
 
 export async function sendPasswordResetEmail(email: string, otp: string) {
-  const transporter = createTransporter();
-  await transporter.sendMail({
-    from: `"Quiz Central" <${process.env.EMAIL_USER}>`,
-    to: email,
-    subject: "Password Reset — Quiz Central",
-    html: `
+  const params = {
+    Source: `"Quiz Central" <${process.env.SES_FROM_EMAIL}>`,
+    Destination: { ToAddresses: [email] },
+    Message: {
+      Subject: { Data: "Password Reset — Quiz Central" },
+      Body: {
+        Html: {
+          Data: `
       <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:2rem;border:1px solid #e5e5e5">
         <h2 style="margin:0 0 1rem">Password Reset</h2>
         <p>You requested a password reset. Use this code to set a new password:</p>
@@ -46,7 +49,11 @@ export async function sendPasswordResetEmail(email: string, otp: string) {
         <p style="color:#666;font-size:0.85rem">This code expires in 10 minutes. If you didn't request this, ignore this email.</p>
         <p style="color:#999;font-size:0.75rem;margin-top:2rem">— Quiz Central</p>
       </div>
-    `,
-  });
-  console.log("Password reset OTP sent to:", email);
+          `,
+        },
+      },
+    },
+  };
+  await sesClient.send(new SendEmailCommand(params));
+  console.log("Password reset OTP sent via SES to:", email);
 }
