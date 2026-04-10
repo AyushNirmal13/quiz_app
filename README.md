@@ -1,4 +1,4 @@
-# ≡ƒÜÇ Quiz Central - Cloud-Native AI Quiz Intelligence System
+#  Quiz Central - Cloud-Native AI Quiz Intelligence System
 
 [![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)](https://nextjs.org/)
 [![AWS](https://img.shields.io/badge/AWS-Powered-FF9900?logo=amazon-aws&logoColor=white)](https://aws.amazon.com/)
@@ -9,7 +9,7 @@
 
 ---
 
-## ≡ƒÅ¢∩╕Å System Architecture
+##  System Architecture
 
 Quiz Central is built on a highly available and distributed architecture, ensuring low latency and high scalability across all modules.
 
@@ -40,41 +40,41 @@ graph TD
 
 ---
 
-## ≡ƒöÑ Cloud Stack & Core Components
+##  Cloud Stack & Core Components
 
 This project is meticulously designed to demonstrate high-performance cloud integration:
 
-### ≡ƒôª [AWS S3](https://aws.amazon.com/s3/) - Secure Object Storage
+###  [AWS S3](https://aws.amazon.com/s3/) - Secure Object Storage
 - **Purpose**: Acts as the centralized repository for all student and teacher uploaded documents.
 - **Implementation**: Utilizes **Pre-signed URLs** for secure, temporary access to private content, reducing server load and enhancing security.
 - **Capabilities**: Handles large PDF/DOCX study materials with automated metadata tagging.
 
-### ≡ƒº¬ [AWS Bedrock](https://aws.amazon.com/bedrock/) - Foundation Model Hub
+### [AWS Bedrock](https://aws.amazon.com/bedrock/) - Foundation Model Hub
 - **Purpose**: Powers the Generative AI engine that transforms PDFs into high-quality MCQs.
 - **Implementation**: Provides a unified API to access state-of-the-art models (like Llama and Titan), enabling complex reasoning and difficulty-aware question generation.
 - **Scalability**: Decouples the frontend from specific AI vendors, allowing for seamless model switching and optimization.
 
-### ≡ƒÜÇ [AWS Lambda](https://aws.amazon.com/lambda/) - Serverless Scalability
+###  [AWS Lambda](https://aws.amazon.com/lambda/) - Serverless Scalability
 - **Purpose**: Executes heavy-duty compute tasks such as document parsing and AI response validation.
 - **Benefit**: Ensures the main web application remains responsive by offloading long-running generative tasks to a serverless environment that scales horizontally with demand.
 
-### ≡ƒôº [AWS SES](https://aws.amazon.com/ses/) - Transactional Email
+###  [AWS SES](https://aws.amazon.com/ses/) - Transactional Email
 - **Purpose**: Manages the critical communication loop, including One-Time Passwords (OTP) and password reset notifications.
 - **Reliability**: Leverages Amazon's high-deliverability infrastructure to ensure academic credentials are never lost.
 
 ---
 
-## ≡ƒîƒ Key Features
+##  Key Features
 
-- **Γ£¿ AI Quiz Generation**: Upload any document and get a fully formatted, difficulty-balanced quiz in seconds.
-- **≡ƒôè Real-time Analytics**: Detailed performance metrics for students and comprehensive class-wide statistics for teachers.
-- **≡ƒôì Leaderboards**: Gamified learning environment to boost student engagement.
-- **≡ƒöÆ Security First**: Encrypted document storage, secure session management, and robust verification flows.
-- **≡ƒô▒ Fully Responsive**: A seamless experience across mobile, tablet, and desktop.
+- **AI Quiz Generation**: Upload any document and get a fully formatted, difficulty-balanced quiz in seconds.
+- **Real-time Analytics**: Detailed performance metrics for students and comprehensive class-wide statistics for teachers.
+- **Leaderboards**: Gamified learning environment to boost student engagement.
+- **Security First**: Encrypted document storage, secure session management, and robust verification flows.
+- **Fully Responsive**: A seamless experience across mobile, tablet, and desktop.
 
 ---
 
-## ≡ƒöº Getting Started
+## Getting Started
 
 ### Prerequisites
 - Node.js 20+
@@ -112,9 +112,9 @@ npm run dev
 
 ---
 
-## ≡ƒÄô Presentation Note for Faculty
+## Presentation Note for Faculty
 This project was built to showcase the power of **serverless architecture** and **cloud-native AI orchestration**. By utilizing AWS Lambda and S3, the application demonstrates how modern web tools can provide infinite scalability without the overhead of traditional server management. The integration of AWS Bedrock illustrates a future-proof approach to building GenAI applications.
 
 ---
 
-Built with Γ¥ñ∩╕Å by [Ayush Sanjay Nirmal](https://github.com/AyushNirmal13)
+Built with LOVE by [Ayush Sanjay Nirmal](https://github.com/AyushNirmal13)
